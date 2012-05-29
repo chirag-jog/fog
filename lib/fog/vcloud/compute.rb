@@ -112,6 +112,8 @@ module Fog
       request :configure_network_ip
       request :configure_vapp
       request :configure_vm_memory
+      request :configure_vm_cpus
+      request :configure_org_network
       request :configure_vm_name_description
       request :configure_vm_disks
       request :delete_vapp
@@ -325,6 +327,9 @@ module Fog
           end
 
           # Make the request
+          puts("Request-Path: #{params[:uri].path}")
+          puts("Request-Body: #{params[:body]}")
+          puts("Request-Method: #{params[:method]}")
           response = @connections[host_url].request({
             :body     => params[:body] || '',
             :expects  => params[:expects] || 200,

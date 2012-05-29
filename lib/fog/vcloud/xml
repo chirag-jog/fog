@@ -1,0 +1,70 @@
+<NetworkConfigSection><Info>Configuration parameters for logical networks</Info><NetworkConfig networkName="vAppNet-nat01-Bluelock"><Configuration>                <IpScope>
+                    <IsInherited>false</IsInherited>
+                    <Gateway>192.168.0.1</Gateway>
+                    <Netmask>255.255.255.0</Netmask>
+                    <Dns1>173.240.111.52</Dns1>
+                    <IpRanges>
+                        <IpRange>
+                            <StartAddress>192.168.0.100</StartAddress>
+                            <EndAddress>192.168.0.199</EndAddress>
+                        </IpRange>
+                    </IpRanges>
+                    <AllocatedIpAddresses>
+                        <IpAddress>192.168.0.100</IpAddress>
+                    </AllocatedIpAddresses>
+                </IpScope>
+
+
+<ParentNetwork name="internet01-Bluelock-PCEP36" href="https://zone01.bluelock.com/api/network/159c122a-739a-4a0d-ae86-4623320e0132"/>
+                <FenceMode>natRouted</FenceMode>
+                <RetainNetInfoAcrossDeployments>false</RetainNetInfoAcrossDeployments>
+                <Features>
+                    <DhcpService>
+                        <IsEnabled>false</IsEnabled>
+                        <DefaultLeaseTime>3600</DefaultLeaseTime>
+                        <MaxLeaseTime>7200</MaxLeaseTime>
+                        <IpRange>
+                            <StartAddress>192.168.0.2</StartAddress>
+                            <EndAddress>192.168.0.99</EndAddress>
+                        </IpRange>
+                    </DhcpService>
+                    <FirewallService>
+                        <IsEnabled>true</IsEnabled>
+                        <DefaultAction>drop</DefaultAction>
+                        <LogDefaultAction>false</LogDefaultAction>
+                        <FirewallRule>
+                            <IsEnabled>true</IsEnabled>
+                            <Description>Allow all outgoing traffic</Description>
+                            <Policy>allow</Policy>
+                            <Protocols>
+                                <Any>true</Any>
+                            </Protocols>
+                            <Port>-1</Port>
+                            <DestinationIp>Any</DestinationIp>
+                            <SourcePort>-1</SourcePort>
+                            <SourceIp>Any</SourceIp>
+                            <Direction>out</Direction>
+                            <EnableLogging>false</EnableLogging>
+                        </FirewallRule>
+                    </FirewallService>
+                    <NatService>
+                        <IsEnabled>true</IsEnabled>
+                        <NatType>ipTranslation</NatType>
+                        <Policy>allowTraffic</Policy>
+                        <NatRule>
+                            <OneToOneVmRule>
+                                <MappingMode>automatic</MappingMode>
+                                <VAppScopedVmId>0626599775-Centos5x64</VAppScopedVmId>
+                                <VmNicId>0</VmNicId>
+                            </OneToOneVmRule>
+                        </NatRule>
+                    </NatService>
+                    <StaticRoutingService>
+                        <IsEnabled>false</IsEnabled>
+                    </StaticRoutingService>
+                </Features>
+                <SyslogServerSettings/>
+
+
+
+</Configuration></NetworkConfig></NetworkConfigSection>
