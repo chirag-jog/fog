@@ -10,7 +10,7 @@ module Fog
         attribute :href, :aliases => :Href
 
         def all
-          data = connection.get_catalog(href).body[:CatalogItems][:CatalogItem]
+          data = connection.get_catalog_item(href).body[:CatalogItems][:CatalogItem]
           load(data)
         end
 
