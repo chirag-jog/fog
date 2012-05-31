@@ -86,7 +86,14 @@ module Fog
           attributes[:name] = new_name
           @changed = true
         end
+        def password
+          guest_customization[:AdminPassword]
+        end
 
+        def password=(password)
+            @changed = true
+            @update_password = password
+        end
         def cpus
           if cpu_mess
             { :count => cpu_mess[:"rasd:VirtualQuantity"].to_i,
@@ -173,6 +180,13 @@ module Fog
                 raise RuntimeError, "Can't save cpu, name or memory changes while the VM is on."
               end
             end
+
+            if @update_password
+                guest_customization[:AdminPassword] = @update_password
+                connection.configure_vm_password(guest_customization)
+                wait_for { ready? }
+            end
+
             if @update_cpu_value
               cpu_mess[:"rasd:VirtualQuantity"] = @update_cpu_value.to_s
               connection.configure_vm_cpus(cpu_mess)

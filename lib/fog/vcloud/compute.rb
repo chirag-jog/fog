@@ -116,6 +116,7 @@ module Fog
       request :configure_org_network
       request :configure_vm_name_description
       request :configure_vm_disks
+      request :configure_vm_password
       request :delete_vapp
       request :get_catalog_item
       request :get_customization_options
