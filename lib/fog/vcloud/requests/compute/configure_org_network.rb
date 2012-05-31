@@ -5,7 +5,8 @@ module Fog
       class Real
 
         def generate_outbound_rule()
-          outbound_rule = <<EOF <FirewallRule>
+          outbound_rule = <<EOF 
+            <ns0:FirewallRule>
             <ns0:IsEnabled>true</ns0:IsEnabled>
             <ns0:Description>OUTGOING</ns0:Description>
             <ns0:Policy>allow</ns0:Policy>
@@ -24,10 +25,10 @@ EOF
         end
         def generate_tcp_rules(tcp_ports)
           firewall_rules = ""
-          tcp_ports.all.each do |port|
+          tcp_ports.each do |port|
             firewall_rules << <<EOF 
                     <ns0:FirewallRule>
-                    <ns0:IsEnabled>true</IsEnabled>
+                    <ns0:IsEnabled>true</ns0:IsEnabled>
                     <ns0:Description>#{port}</ns0:Description>
                     <ns0:Policy>allow</ns0:Policy>
                     <ns0:Protocols>
@@ -47,7 +48,7 @@ EOF
 
         def generate_udp_rules(udp_ports)
           firewall_rules = ""
-          udp_ports.all.each do |port|
+          udp_ports.each do |port|
               firewall_rules << <<EOF 
                     <ns0:FirewallRule>
                     <ns0:IsEnabled>true</ns0:IsEnabled>
@@ -68,10 +69,10 @@ EOF
           firewall_rules
         end
 
-        def generate_configure_org_network_request(vapp_id, vapp_network, vapp_network_uri, org_network, org_network_uri, enable_firewall=false, port_map=nil)
+        def generate_configure_org_network_request(vapp_id, vapp_network, vapp_network_uri, org_network, org_network_uri, enable_firewall=false, portmap=nil)
 
           firewall_body = ""
-          if not :enable_firewall
+          if not enable_firewall
             firewall_body = "<ns0:IsEnabled>false</ns0:IsEnabled>"
         
           else
