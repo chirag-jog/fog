@@ -207,7 +207,7 @@ module Fog
           if @default_organization_uri.nil?
             @default_organization_uri = organizations.first.href
           end
-          puts "VDC HREF: #{@default_organization_uri}"
+          #puts "VDC HREF: #{@default_organization_uri}"
           @default_organization_uri
         end
 
@@ -220,7 +220,7 @@ module Fog
               vdc = get_organization(org.href).links.find { |item| item[:type] == 'application/vnd.vmware.vcloud.vdc+xml'}
               @vdc_href = vdc[:href]
           end
-          puts "VDC HREF: #{@vdc_href}"
+          #puts "VDC HREF: #{@vdc_href}"
           @vdc_href
         end
 
@@ -311,9 +311,9 @@ module Fog
         def do_request(params)
           # Convert the uri to a URI if it's a string.
           if params[:uri].is_a?(String)
-            puts "params uri #{params[:uri]}"
+            #puts "params uri #{params[:uri]}"
             params[:uri] = URI.parse(params[:uri])
-            puts "params uri #{params[:uri]}"
+            #puts "params uri #{params[:uri]}"
           end
           host_url = "#{params[:uri].scheme}://#{params[:uri].host}#{params[:uri].port ? ":#{params[:uri].port}" : ''}"
 
@@ -331,9 +331,9 @@ module Fog
           end
 
           # Make the request
-          puts("Request-Path: #{params[:uri].path}")
-          puts("Request-Body: #{params[:body]}")
-          puts("Request-Method: #{params[:method]}")
+          #puts("Request-Path: #{params[:uri].path}")
+          #puts("Request-Body: #{params[:body]}")
+          #puts("Request-Method: #{params[:method]}")
           response = @connections[host_url].request({
             :body     => params[:body] || '',
             :expects  => params[:expects] || 200,

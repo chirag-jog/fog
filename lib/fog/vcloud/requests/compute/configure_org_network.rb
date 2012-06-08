@@ -36,7 +36,7 @@ EOF
                     </ns0:Protocols>
                     <ns0:Port>#{port}</ns0:Port>
                     <ns0:DestinationIp>Any</ns0:DestinationIp>
-                    <ns0:SourcePort>#{port}</ns0:SourcePort>
+                    <ns0:SourcePort>-1</ns0:SourcePort>
                     <ns0:SourceIp>Any</ns0:SourceIp>
                     <ns0:Direction>in</ns0:Direction>
                     <ns0:EnableLogging>false</ns0:EnableLogging>
@@ -59,7 +59,7 @@ EOF
                     </ns0:Protocols>
                     <ns0:Port>#{port}</ns0:Port>
                     <ns0:DestinationIp>Any</ns0:DestinationIp>
-                    <ns0:SourcePort>#{port}</ns0:SourcePort>
+                    <ns0:SourcePort>-1</ns0:SourcePort>
                     <ns0:SourceIp>Any</ns0:SourceIp>
                     <ns0:Direction>in</ns0:Direction>
                     <ns0:EnableLogging>false</ns0:EnableLogging>
@@ -123,7 +123,7 @@ EOF
 
     def configure_org_network(vapp_id, vapp_network, vapp_network_uri, org_network, org_network_uri, enable_firewall=false, port_map=nil)
       body = generate_configure_org_network_request(vapp_id, vapp_network, vapp_network_uri, org_network, org_network_uri, enable_firewall, port_map)
-      puts ("Body: #{body}")
+      #puts ("Body: #{body}")
 
       request(
             :body     => body,
