@@ -40,6 +40,8 @@ module Fog
         #
 
         def authorize_group_and_owner(group, owner = nil)
+          Fog::Logger.deprecation("authorize_group_and_owner is deprecated, use authorize_port_range with :group option instead")
+
           requires_one :name, :group_id
 
           connection.authorize_security_group_ingress(
@@ -62,6 +64,7 @@ module Fog
         # options::
         #   A hash that can contain any of the following keys:
         #    :cidr_ip (defaults to "0.0.0.0/0")
+        #    :group - ("account:group_name" or "account:group_id"), cannot be used with :cidr_ip
         #    :ip_protocol (defaults to "tcp")
         #
         # == Returns:
@@ -81,21 +84,26 @@ module Fog
         def authorize_port_range(range, options = {})
           requires_one :name, :group_id
 
+          ip_permission = {
+            'FromPort'   => range.min,
+            'ToPort'     => range.max,
+            'IpProtocol' => options[:ip_protocol] || 'tcp'
+          }
+
+          if options[:group].nil?
+            ip_permission['IpRanges'] = [
+              { 'CidrIp' => options[:cidr_ip] || '0.0.0.0/0' }
+            ]
+          else
+            ip_permission['Groups'] = [
+              group_info(options[:group])
+            ]
+          end
+
           connection.authorize_security_group_ingress(
             name,
             'GroupId'       => group_id,
-            'IpPermissions' => [
-              {
-                'FromPort'   => range.min,
-                'ToPort'     => range.max,
-                'IpProtocol' => options[:ip_protocol] || 'tcp',
-                'IpRanges'   => [
-                  {
-                    'CidrIp' => options[:cidr_ip] || '0.0.0.0/0'
-                  }
-                ]
-              }
-            ]
+            'IpPermissions' => [ ip_permission ]
           )
         end
 
@@ -146,6 +154,8 @@ module Fog
         #
 
         def revoke_group_and_owner(group, owner = nil)
+          Fog::Logger.deprecation("revoke_group_and_owner is deprecated, use revoke_port_range with :group option instead")
+
           requires_one :name, :group_id
 
           connection.revoke_security_group_ingress(
@@ -168,6 +178,7 @@ module Fog
         # options::
         #   A hash that can contain any of the following keys:
         #    :cidr_ip (defaults to "0.0.0.0/0")
+        #    :group - ("account:group_name" or "account:group_id"), cannot be used with :cidr_ip
         #    :ip_protocol (defaults to "tcp")
         #
         # == Returns:
@@ -187,21 +198,26 @@ module Fog
         def revoke_port_range(range, options = {})
           requires_one :name, :group_id
 
+          ip_permission = {
+            'FromPort'   => range.min,
+            'ToPort'     => range.max,
+            'IpProtocol' => options[:ip_protocol] || 'tcp'
+          }
+
+          if options[:group].nil?
+            ip_permission['IpRanges'] = [
+              { 'CidrIp' => options[:cidr_ip] || '0.0.0.0/0' }
+            ]
+          else
+            ip_permission['Groups'] = [
+              group_info(options[:group])
+            ]
+          end
+
           connection.revoke_security_group_ingress(
             name,
             'GroupId'       => group_id,
-            'IpPermissions' => [
-              {
-                'FromPort'   => range.min,
-                'ToPort'     => range.max,
-                'IpProtocol' => options[:ip_protocol] || 'tcp',
-                'IpRanges'   => [
-                  {
-                    'CidrIp' => options[:cidr_ip] || '0.0.0.0/0'
-                  }
-                ]
-              }
-            ]
+            'IpPermissions' => [ ip_permission ]
           )
         end
 
@@ -222,6 +238,43 @@ module Fog
           new_attributes = data.reject {|key,value| key == 'requestId'}
           merge_attributes(new_attributes)
           true
+        end
+
+        private
+
+        #
+        # +group_arg+ may be a string or a hash with one key & value.
+        #
+        # If group_arg is a string, it is assumed to be the group name,
+        # and the UserId is assumed to be self.owner_id.
+        #
+        # The "account:group" form is deprecated.
+        #
+        # If group_arg is a hash, the key is the UserId and value is the group.
+        def group_info(group_arg)
+          if Hash === group_arg
+            account = group_arg.keys.first
+            group   = group_arg.values.first
+          elsif group_arg.match(/:/)
+            account, group = group_arg.split(':')
+            Fog::Logger.deprecation("'account:group' argument is deprecated. Use {account => group} or just group instead")
+          else
+            requires :owner_id
+            account = owner_id
+            group = group_arg
+          end
+
+          info = { 'UserId' => account }
+
+          if group.start_with?("sg-")
+            # we're dealing with a security group id
+            info['GroupId'] = group
+          else
+            # this has to be a security group name
+            info['GroupName'] = group
+          end
+
+          info
         end
 
       end

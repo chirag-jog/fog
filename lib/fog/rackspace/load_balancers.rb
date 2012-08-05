@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'rackspace'))
+require 'fog/rackspace'
 
 module Fog
   module Rackspace
@@ -29,6 +29,9 @@ module Fog
       model :access_rule
 
       request_path 'fog/rackspace/requests/load_balancers'
+      request :get_ssl_termination
+      request :set_ssl_termination
+      request :remove_ssl_termination
       request :create_load_balancer
       request :get_load_balancer
       request :list_load_balancers
