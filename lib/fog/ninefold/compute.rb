@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'ninefold'))
+require 'fog/ninefold'
 require 'fog/compute'
 
 module Fog
@@ -8,6 +8,7 @@ module Fog
       API_URL = "http://api.ninefold.com/compute/v1.0/"
 
       requires :ninefold_compute_key, :ninefold_compute_secret
+      recognizes :ninefold_api_url  # allow us to specify non-prod environments
 
       model_path 'fog/ninefold/models/compute'
       model       :server
@@ -86,9 +87,9 @@ module Fog
 
         def request(command, params, options)
           params['response'] = "json"
-          req = "apiKey=#{@ninefold_compute_key}&command=#{command}&"
           # convert params to strings for sort
-          req += URI.escape(params.sort_by{|k,v| k.to_s }.collect{|e| "#{e[0].to_s}=#{e[1].to_s}"}.join('&'))
+          req_params = params.merge('apiKey' => @ninefold_compute_key, 'command' => command)
+          req = URI.escape(req_params.sort_by{|k,v| k.to_s }.collect{|e| "#{e[0].to_s}=#{e[1].to_s}"}.join('&'))
           encoded_signature = url_escape(encode_signature(req))
 
           options = {

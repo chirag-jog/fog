@@ -14,10 +14,13 @@ module Fog
         attribute :ami_launch_index,      :aliases => 'amiLaunchIndex'
         attribute :availability_zone,     :aliases => 'availabilityZone'
         attribute :block_device_mapping,  :aliases => 'blockDeviceMapping'
+        attribute :network_interfaces,    :aliases => 'networkInterfaces'
         attribute :client_token,          :aliases => 'clientToken'
         attribute :dns_name,              :aliases => 'dnsName'
+        attribute :ebs_optimized,         :aliases => 'ebsOptimized'
         attribute :groups
         attribute :flavor_id,             :aliases => 'instanceType'
+        attribute :iam_instance_profile,  :aliases => 'iamInstanceProfile'
         attribute :image_id,              :aliases => 'imageId'
         attr_accessor :instance_initiated_shutdown_behavior
         attribute :kernel_id,             :aliases => 'kernelId'
@@ -45,6 +48,8 @@ module Fog
 
         attr_accessor :password
         attr_writer   :private_key, :private_key_path, :public_key, :public_key_path, :username
+        attr_writer   :iam_instance_profile_name, :iam_instance_profile_arn
+
 
         def initialize(attributes={})
           self.groups     ||= ["default"] unless (attributes[:subnet_id] || attributes[:security_group_ids])
@@ -146,6 +151,9 @@ module Fog
           options = {
             'BlockDeviceMapping'          => block_device_mapping,
             'ClientToken'                 => client_token,
+            'EbsOptimized'                => ebs_optimized,
+            'IamInstanceProfile.Arn'      => @iam_instance_profile_arn,
+            'IamInstanceProfile.Name'     => @iam_instance_profile_name,
             'InstanceInitiatedShutdownBehavior' => instance_initiated_shutdown_behavior,
             'InstanceType'                => flavor_id,
             'KernelId'                    => kernel_id,
@@ -159,13 +167,14 @@ module Fog
             'SecurityGroup'               => groups,
             'SecurityGroupId'             => security_group_ids,
             'SubnetId'                    => subnet_id,
-            'UserData'                    => user_data
+            'UserData'                    => user_data,
           }
           options.delete_if {|key, value| value.nil?}
 
-          # If subnet is defined we are working on a virtual private cloud.
-          # subnet & security group cannot co-exist. I wish VPC just ignored
-          # the security group parameter instead, it would be much easier!
+          # If subnet is defined then this is a Virtual Private Cloud.
+          # subnet & security group cannot co-exist. Attempting to specify
+          # both subnet and groups will cause an error.  Instead please make
+          # use of Security Group Ids when working in a VPC.
           if subnet_id
             options.delete('SecurityGroup')
           else
@@ -204,18 +213,8 @@ module Fog
           end
 
           # wait for aws to be ready
-          Timeout::timeout(360) do
-            begin
-              Timeout::timeout(8) do
-                Fog::SSH.new(public_ip_address, username, credentials.merge(:timeout => 4)).run('pwd')
-              end
-            rescue Errno::ECONNREFUSED
-              sleep(2)
-              retry
-            rescue Net::SSH::AuthenticationFailed, Timeout::Error
-              retry
-            end
-          end
+          wait_for { sshable? }
+
           Fog::SSH.new(public_ip_address, username, credentials).run(commands)
         end
 
