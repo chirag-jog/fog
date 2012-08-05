@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'vcloud'))
+require 'fog/vcloud'
 require 'fog/compute'
 
 module Fog
@@ -191,12 +191,12 @@ module Fog
           @username  = options[:vcloud_username]
           @password  = options[:vcloud_password]
           @host      = options[:vcloud_host]
-          @vdc_href  = options[:vcloud_default_vdc]
           @base_path = options[:vcloud_base_path]   || Fog::Vcloud::Compute::BASE_PATH
           @version   = options[:vcloud_version]     || Fog::Vcloud::Compute::DEFAULT_VERSION
           @path      = options[:vcloud_path]        || "#{@base_path}/v#{@version}"
           @port      = options[:vcloud_port]        || Fog::Vcloud::Compute::PORT
           @scheme    = options[:vcloud_scheme]      || Fog::Vcloud::Compute::SCHEME
+          @vdc_href  = options[:vcloud_default_vdc] 
         end
 
         def reload
@@ -204,22 +204,23 @@ module Fog
         end
 
         def default_organization_uri
-          @default_organization_uri ||= begin
-            unless @login_results
-              do_login
-            end
-            case @login_results.body[:Org]
-            when Array
-              @login_results.body[:Org].first[:href]
-            when Hash
-              @login_results.body[:Org][:href]
-            else
-              nil
-            end
+          if @default_organization_uri.nil?
+            @default_organization_uri = organizations.first.href
           end
+          #puts "VDC HREF: #{@default_organization_uri}"
+          @default_organization_uri
         end
 
         def default_vdc_href
+          if @vdc_href.nil?
+              unless @login_results
+                do_login
+              end
+              org = organizations.first
+              vdc = get_organization(org.href).links.find { |item| item[:type] == 'application/vnd.vmware.vcloud.vdc+xml'}
+              @vdc_href = vdc[:href]
+          end
+          #puts "VDC HREF: #{@vdc_href}"
           @vdc_href
         end
 
@@ -261,7 +262,7 @@ module Fog
           end
           begin
             do_request(params)
-          rescue Excon::Errors::Unauthorized => e
+          rescue Excon::Errors::Unauthorized
             do_login
             do_request(params)
           end
@@ -310,7 +311,9 @@ module Fog
         def do_request(params)
           # Convert the uri to a URI if it's a string.
           if params[:uri].is_a?(String)
+            #puts "params uri #{params[:uri]}"
             params[:uri] = URI.parse(params[:uri])
+            #puts "params uri #{params[:uri]}"
           end
           host_url = "#{params[:uri].scheme}://#{params[:uri].host}#{params[:uri].port ? ":#{params[:uri].port}" : ''}"
 
@@ -328,9 +331,9 @@ module Fog
           end
 
           # Make the request
-          puts("Request-Path: #{params[:uri].path}")
-          puts("Request-Body: #{params[:body]}")
-          puts("Request-Method: #{params[:method]}")
+          #puts("Request-Path: #{params[:uri].path}")
+          #puts("Request-Body: #{params[:body]}")
+          #puts("Request-Method: #{params[:method]}")
           response = @connections[host_url].request({
             :body     => params[:body] || '',
             :expects  => params[:expects] || 200,

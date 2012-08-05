@@ -91,8 +91,9 @@ module Fog
         end
 
         def password=(password)
-            @changed = true
-            @update_password = password
+          return if password.nil? or password.size == 0
+          @changed = true
+          @update_password = password
         end
         def cpus
           if cpu_mess
@@ -102,6 +103,8 @@ module Fog
         end
 
         def cpus=(qty)
+          return if qty.nil? or qty.size == 0
+           
           @changed = true
           @update_cpu_value = qty
           qty
@@ -115,6 +118,7 @@ module Fog
         end
 
         def memory=(amount)
+          return if amount.nil? or amount.size == 0
           @changed = true
           @update_memory_value = amount
           amount
@@ -182,7 +186,7 @@ module Fog
             end
 
             if @update_password
-                guest_customization[:AdminPassword] = @update_password
+                guest_customization[:AdminPassword] = @update_password.to_s
                 connection.configure_vm_password(guest_customization)
                 wait_for { ready? }
             end
@@ -193,13 +197,12 @@ module Fog
               wait_for { ready? }
             end
                 
-
             if @update_memory_value
               memory_mess[:"rasd:VirtualQuantity"] = @update_memory_value.to_s
               connection.configure_vm_memory(memory_mess)
               wait_for { ready? }
-
             end
+
             if @disk_change == :deleted
               data = disk_mess.delete_if do |vh|
                 vh[:'rasd:ResourceType'] == '17' &&
@@ -242,6 +245,8 @@ module Fog
         def reset_tracking
           @disk_change = false
           @changed = false
+          @update_password = nil
+          @update_cpu_value = nil
           @update_memory_value = nil
           @name_changed = false
           @description_changed = nil
